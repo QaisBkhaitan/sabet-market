@@ -1,25 +1,45 @@
 from logging.config import fileConfig
 
 from alembic import context
-from sqlalchemy import engine_from_config, pool
+from sqlalchemy import (
+    engine_from_config,
+    pool,
+)
 
 from app.core.config import settings
 from app.db.database import Base
 
-from app.models.category import Category
-from app.models.product import Product
+# Import all models so Alembic knows
+# about the complete database schema.
 from app.models.admin import Admin
+from app.models.category import Category
+from app.models.order import Order
+from app.models.order_item import OrderItem
+from app.models.product import Product
+
 
 config = context.config
 
+
+# Alembic uses ConfigParser internally.
+# Escape % characters in case they appear
+# inside the production database password.
+database_url = (
+    settings.database_url
+    .replace("%", "%%")
+)
+
+
 config.set_main_option(
     "sqlalchemy.url",
-    settings.database_url,
+    database_url,
 )
 
 
 if config.config_file_name is not None:
-    fileConfig(config.config_file_name)
+    fileConfig(
+        config.config_file_name
+    )
 
 
 target_metadata = Base.metadata
@@ -35,7 +55,7 @@ def run_migrations_offline() -> None:
         target_metadata=target_metadata,
         literal_binds=True,
         dialect_opts={
-            "paramstyle": "named"
+            "paramstyle": "named",
         },
     )
 
