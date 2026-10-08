@@ -658,7 +658,7 @@ export interface CreateOrderItem {
 export interface CreateOrderData {
   customer_name: string
   phone: string
-  whatsapp: string | null
+  whatsapp: string 
 
   city: string
   address: string

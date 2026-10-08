@@ -20,6 +20,14 @@ class Settings(BaseSettings):
         "70.0"
     )
 
+    # Application environment
+    environment: str = "development"
+
+    # Frontend origin used for CORS
+    frontend_url: str = (
+        "http://localhost:5173"
+    )
+
     # Cloudinary
     cloudinary_cloud_name: str
     cloudinary_api_key: str
@@ -29,6 +37,15 @@ class Settings(BaseSettings):
         env_file=".env",
         env_file_encoding="utf-8",
     )
+
+    @property
+    def is_production(self) -> bool:
+        return (
+            self.environment
+            .strip()
+            .lower()
+            == "production"
+        )
 
 
 settings = Settings()

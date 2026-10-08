@@ -1,11 +1,30 @@
-from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
+from fastapi import (
+    FastAPI,
+    HTTPException,
+    Request,
+)
+
+from fastapi.middleware.cors import (
+    CORSMiddleware,
+)
+
+from fastapi.responses import (
+    JSONResponse,
+)
+
 from sqlalchemy import text
 
+
+from app.core.config import settings
 from app.db.database import engine
 
-from app.api.categories import router as categories_router
-from app.api.products import router as products_router
+from app.api.categories import (
+    router as categories_router,
+)
+
+from app.api.products import (
+    router as products_router,
+)
 
 from app.api.admin_auth import (
     router as admin_auth_router,
@@ -15,83 +34,167 @@ from app.api.admin_products import (
     router as admin_products_router,
 )
 
-from pathlib import Path
-
-from fastapi.staticfiles import StaticFiles
-from app.api.orders import (
-    router as orders_router,
-)
-from app.api.admin_orders import (
-    router as admin_orders_router,
-)
-app = FastAPI(
-    title="Jenin Supermarket API",
-    version="1.0.0",
-)
 from app.api.admin_categories import (
     router as admin_categories_router,
 )
+
+from app.api.orders import (
+    router as orders_router,
+)
+
+from app.api.admin_orders import (
+    router as admin_orders_router,
+)
+
 from app.api.store_config import (
     router as store_config_router,
 )
-BACKEND_DIR = Path(
-    __file__
-).resolve().parents[1]
 
-UPLOAD_DIR = (
-    BACKEND_DIR
-    / "uploads"
-)
 
-UPLOAD_DIR.mkdir(
-    parents=True,
-    exist_ok=True,
+app = FastAPI(
+    title="Sabet Market API",
+    version="1.0.0",
 )
 
 
-app.mount(
-    "/uploads",
-    StaticFiles(
-        directory=UPLOAD_DIR
-    ),
-    name="uploads",
+# =========================
+# CORS
+# =========================
+
+frontend_origin = (
+    settings.frontend_url
+    .strip()
+    .rstrip("/")
 )
+
+
+allowed_origins = {
+    "http://localhost:5173",
+}
+
+
+if frontend_origin:
+    allowed_origins.add(
+        frontend_origin
+    )
+
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:5173",
-    ],
+
+    allow_origins=list(
+        allowed_origins
+    ),
+
     allow_credentials=True,
+
     allow_methods=["*"],
+
     allow_headers=["*"],
 )
 
 
-app.include_router(categories_router)
-app.include_router(products_router)
+# =========================
+# ADMIN ORIGIN PROTECTION
+# =========================
+
+@app.middleware("http")
+async def protect_admin_origin(
+    request: Request,
+    call_next,
+):
+    protected_methods = {
+        "POST",
+        "PUT",
+        "PATCH",
+        "DELETE",
+    }
+
+
+    if (
+        request.url.path.startswith(
+            "/api/admin/"
+        )
+        and request.method
+        in protected_methods
+    ):
+        origin = (
+            request.headers.get(
+                "origin"
+            )
+        )
+
+
+        if origin:
+            normalized_origin = (
+                origin.rstrip("/")
+            )
+
+
+            if (
+                normalized_origin
+                not in allowed_origins
+            ):
+                return JSONResponse(
+                    status_code=403,
+                    content={
+                        "detail":
+                        "Origin not allowed"
+                    },
+                )
+
+
+    return await call_next(
+        request
+    )
+
+
+# =========================
+# ROUTERS
+# =========================
+
+app.include_router(
+    categories_router
+)
+
+app.include_router(
+    products_router
+)
+
 app.include_router(
     admin_auth_router
 )
+
 app.include_router(
     admin_products_router
 )
+
 app.include_router(
     admin_categories_router
 )
+
 app.include_router(
     orders_router
 )
+
 app.include_router(
     admin_orders_router
 )
+
 app.include_router(
     store_config_router
 )
+
+
+# =========================
+# HEALTH
+# =========================
+
 @app.get("/")
 def root():
     return {
-        "message": "Jenin Supermarket API is running"
+        "message":
+        "Sabet Market API is running"
     }
 
 
@@ -111,11 +214,12 @@ def database_health():
             )
 
         return {
-            "database": "connected"
+            "database":
+            "connected"
         }
 
-    except Exception as error:
-        return {
-            "database": "error",
-            "details": str(error),
-        }
+    except Exception:
+        raise HTTPException(
+            status_code=503,
+            detail="Database unavailable",
+        )
