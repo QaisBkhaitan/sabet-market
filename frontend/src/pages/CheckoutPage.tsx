@@ -292,9 +292,7 @@ function CheckoutPage() {
           whatsapp:
             sameAsPhone
               ? phone.trim()
-              : whatsapp.trim()
-                ? whatsapp.trim()
-                : null,
+              : whatsapp.trim(),
 
           city:
             city.trim(),
