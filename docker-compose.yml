@@ -1,0 +1,19 @@
+services:
+  postgres:
+    image: postgres:17
+    container_name: jenin_supermarket_db
+    restart: unless-stopped
+
+    environment:
+      POSTGRES_DB: jenin_supermarket
+      POSTGRES_USER: jenin_admin
+      POSTGRES_PASSWORD: jenin_dev_password
+
+    ports:
+      - "5432:5432"
+
+    volumes:
+      - jenin_postgres_data:/var/lib/postgresql/data
+
+volumes:
+  jenin_postgres_data:
