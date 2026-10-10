@@ -134,11 +134,7 @@ def admin_login(
     )
 
 
-    cookie_samesite = (
-        "none"
-        if settings.is_production
-        else "lax"
-    )
+    cookie_samesite = "lax"
 
 
     response.set_cookie(
