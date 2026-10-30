@@ -880,13 +880,25 @@ function CheckoutPage() {
                   <div>
 
                     <p className="font-bold text-ink">
-                      المبلغ عند الاستلام
+                      قيمة الطلب قبل التوصيل
                     </p>
 
-                    <div className="mt-1 flex items-center gap-1.5 text-xs text-muted">
+
+                    <div className="mt-2 rounded-xl bg-soft px-3 py-2">
+
+                      <p className="text-xs font-medium leading-5 text-muted">
+                        رسوم التوصيل تُحدد حسب المنطقة،
+                        وسيتم تأكيدها معك بعد إتمام الطلب.
+                      </p>
+
+                    </div>
+
+
+                    <div className="mt-2 flex items-center gap-1.5 text-xs text-muted">
 
                       <WalletCards
                         size={14}
+                        className="text-primary"
                       />
 
                       الدفع نقداً عند الاستلام

@@ -318,54 +318,57 @@ function CartPage() {
 
             <div className="mt-5 space-y-4">
 
-              {/* Products */}
-              <div className="flex items-center justify-between gap-4">
+            {/* Products */}
+            <div className="flex items-center justify-between gap-4">
 
-                <span className="text-sm text-muted">
-                  قيمة المنتجات
-                </span>
+              <span className="text-sm text-muted">
+                قيمة المنتجات
+              </span>
 
-                <span className="text-sm font-bold text-ink">
-                  {formatPrice(
-                    cartTotal
-                  )}
-                </span>
+              <span className="text-sm font-bold text-ink">
+                {formatPrice(
+                  cartTotal
+                )}
+              </span>
+
+            </div>
+
+          </div>
+
+
+          {/* Grand total */}
+          <div className="mt-5 border-t border-sand pt-5">
+
+            <div className="flex items-end justify-between gap-4">
+
+              <div>
+
+                <p className="font-bold text-ink">
+                  قيمة الطلب قبل التوصيل
+                </p>
+
+                <p className="mt-1 max-w-md text-xs leading-5 text-muted-light">
+                  رسوم التوصيل تُحدد حسب المنطقة، وسيتم تأكيدها معك بعد إتمام الطلب.
+                </p>
+
+                <p className="mt-1 text-xs text-muted-light">
+                  الدفع نقداً عند استلام الطلب
+                </p>
 
               </div>
 
 
-            </div>
+              <span className="shrink-0 text-2xl font-bold text-primary">
 
+                {formatPrice(
+                  grandTotal
+                )}
 
-            {/* Grand total */}
-            <div className="mt-5 border-t border-sand pt-5">
-
-              <div className="flex items-end justify-between gap-4">
-
-                <div>
-
-                  <p className="font-bold text-ink">
-                    المبلغ عند الاستلام
-                  </p>
-
-                  <p className="mt-1 text-xs text-muted-light">
-                    الدفع نقداً عند استلام الطلب
-                  </p>
-
-                </div>
-
-
-                <span className="shrink-0 text-2xl font-bold text-primary">
-
-                  {formatPrice(
-                    grandTotal
-                  )}
-
-                </span>
-
-              </div>
+              </span>
 
             </div>
+
+          </div>
 
 
             {/* Checkout */}
