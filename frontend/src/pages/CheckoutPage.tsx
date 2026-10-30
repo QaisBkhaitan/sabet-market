@@ -8,10 +8,6 @@ import {
 } from 'react-router-dom'
 
 import {
-  useQuery,
-} from '@tanstack/react-query'
-
-import {
   Check,
   CheckCircle2,
   LocateFixed,
@@ -19,7 +15,6 @@ import {
   MessageCircle,
   Phone,
   ShoppingBag,
-  Truck,
   User,
   WalletCards,
 } from 'lucide-react'
@@ -30,7 +25,6 @@ import {
 
 import {
   createOrder,
-  getStoreConfig,
 } from '../services/api'
 
 import {
@@ -50,30 +44,8 @@ function CheckoutPage() {
   } = useCart()
 
 
-  const {
-    data: storeConfig,
-    isLoading: configLoading,
-    isError: configError,
-  } = useQuery({
-    queryKey: [
-      'store-config',
-    ],
-
-    queryFn:
-      getStoreConfig,
-  })
-
-
-  const deliveryFee =
-    Number(
-      storeConfig?.delivery_fee ??
-      0
-    )
-
-
   const grandTotal =
-    cartTotal +
-    deliveryFee
+    cartTotal
 
 
   const [
@@ -260,20 +232,6 @@ function CheckoutPage() {
 
       return
     }
-
-
-    if (
-      configLoading ||
-      configError ||
-      !storeConfig
-    ) {
-      setError(
-        'تعذر تحميل رسوم التوصيل. حاول تحديث الصفحة ثم أعد المحاولة.'
-      )
-
-      return
-    }
-
 
     setIsSubmitting(
       true
@@ -911,33 +869,6 @@ function CheckoutPage() {
                 </div>
 
 
-                <div className="flex items-center justify-between text-sm">
-
-                  <div className="flex items-center gap-2 text-muted">
-
-                    <Truck
-                      size={16}
-                      className="text-primary"
-                    />
-
-                    رسوم التوصيل
-
-                  </div>
-
-                  <span className="font-bold text-ink">
-
-                    {configLoading
-                      ? '...'
-                      : configError
-                        ? 'غير متاح'
-                        : formatPrice(
-                            deliveryFee
-                          )}
-
-                  </span>
-
-                </div>
-
               </div>
 
 
@@ -967,13 +898,9 @@ function CheckoutPage() {
 
                   <span className="shrink-0 text-2xl font-bold text-primary">
 
-                    {configLoading
-                      ? '...'
-                      : configError
-                        ? '—'
-                        : formatPrice(
-                            grandTotal
-                          )}
+                    {formatPrice(
+                      grandTotal
+                    )}
 
                   </span>
 
@@ -992,31 +919,18 @@ function CheckoutPage() {
               )}
 
 
-              {configError && !error && (
-
-                <div className="mt-5 rounded-xl bg-soft p-3 text-xs leading-5 text-muted">
-                  تعذر تحميل رسوم التوصيل. حاول تحديث الصفحة.
-                </div>
-
-              )}
-
-
               {/* Submit */}
               <button
                 type="submit"
                 disabled={
-                  isSubmitting ||
-                  configLoading ||
-                  configError
+                  isSubmitting
                 }
                 className="mt-5 flex h-12 w-full items-center justify-center rounded-2xl bg-primary text-sm font-bold text-white shadow-sm transition hover:bg-primary-dark hover:shadow-md disabled:cursor-not-allowed disabled:bg-soft disabled:text-muted-light disabled:shadow-none"
               >
 
                 {isSubmitting
                   ? 'جاري إرسال الطلب...'
-                  : configLoading
-                    ? 'جاري حساب الطلب...'
-                    : 'تأكيد الطلب'}
+                  : 'تأكيد الطلب'}
 
               </button>
 

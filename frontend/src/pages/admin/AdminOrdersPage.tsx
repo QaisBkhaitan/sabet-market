@@ -759,23 +759,6 @@ function AdminOrdersPage() {
                       </div>
 
 
-                      <div className="flex items-center justify-between text-sm">
-
-                        <span className="text-coffee">
-                          رسوم التوصيل
-                        </span>
-
-                        <span className="font-bold text-coffee-dark">
-
-                          {formatPrice(
-                            order.delivery_fee
-                          )}
-
-                        </span>
-
-                      </div>
-
-
                       <div className="border-t border-sand pt-3">
 
                         <div className="flex items-center justify-between">

@@ -169,23 +169,6 @@ function OrderSuccessPage() {
 
                 </div>
 
-
-                <div className="flex items-center justify-between text-sm">
-
-                  <span className="text-muted">
-                    رسوم التوصيل
-                  </span>
-
-                  <span className="font-bold text-ink">
-
-                    {formatPrice(
-                      order.delivery_fee
-                    )}
-
-                  </span>
-
-                </div>
-
               </div>
 
 

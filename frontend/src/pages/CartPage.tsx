@@ -3,16 +3,11 @@ import {
   Plus,
   ShoppingBag,
   Trash2,
-  Truck,
 } from 'lucide-react'
 
 import {
   Link,
 } from 'react-router-dom'
-
-import {
-  useQuery,
-} from '@tanstack/react-query'
 
 import {
   useCart,
@@ -24,7 +19,6 @@ import {
 
 import {
   getImageUrl,
-  getStoreConfig,
 } from '../services/api'
 
 
@@ -39,30 +33,8 @@ function CartPage() {
   } = useCart()
 
 
-  const {
-    data: storeConfig,
-    isLoading: configLoading,
-    isError: configError,
-  } = useQuery({
-    queryKey: [
-      'store-config',
-    ],
-
-    queryFn:
-      getStoreConfig,
-  })
-
-
-  const deliveryFee =
-    Number(
-      storeConfig?.delivery_fee ??
-      0
-    )
-
-
   const grandTotal =
-    cartTotal +
-    deliveryFee
+    cartTotal
 
 
   /*
@@ -362,35 +334,6 @@ function CartPage() {
               </div>
 
 
-              {/* Delivery */}
-              <div className="flex items-center justify-between gap-4">
-
-                <div className="flex items-center gap-2 text-sm text-muted">
-
-                  <Truck
-                    size={16}
-                    className="text-primary"
-                  />
-
-                  رسوم التوصيل
-
-                </div>
-
-
-                <span className="text-sm font-bold text-ink">
-
-                  {configLoading
-                    ? '...'
-                    : configError
-                      ? 'غير متاح'
-                      : formatPrice(
-                          deliveryFee
-                        )}
-
-                </span>
-
-              </div>
-
             </div>
 
 
@@ -414,13 +357,9 @@ function CartPage() {
 
                 <span className="shrink-0 text-2xl font-bold text-primary">
 
-                  {configLoading
-                    ? '...'
-                    : configError
-                      ? '—'
-                      : formatPrice(
-                          grandTotal
-                        )}
+                  {formatPrice(
+                    grandTotal
+                  )}
 
                 </span>
 
@@ -429,38 +368,10 @@ function CartPage() {
             </div>
 
 
-            {/* Config error */}
-            {configError && (
-
-              <div className="mt-4 rounded-xl bg-soft px-4 py-3 text-xs leading-5 text-muted">
-                تعذر تحميل رسوم التوصيل. حاول تحديث الصفحة قبل إتمام الطلب.
-              </div>
-
-            )}
-
-
             {/* Checkout */}
             <Link
-              to={
-                configError ||
-                configLoading
-                  ? '#'
-                  : '/checkout'
-              }
-              onClick={(event) => {
-                if (
-                  configError ||
-                  configLoading
-                ) {
-                  event.preventDefault()
-                }
-              }}
-              className={`mt-6 flex h-12 w-full items-center justify-center rounded-2xl text-sm font-bold transition ${
-                configError ||
-                configLoading
-                  ? 'cursor-not-allowed bg-soft text-muted-light'
-                  : 'bg-primary text-white shadow-sm hover:bg-primary-dark hover:shadow-md'
-              }`}
+              to="/checkout"
+              className="mt-6 flex h-12 w-full items-center justify-center rounded-2xl bg-primary text-sm font-bold text-white shadow-sm transition hover:bg-primary-dark hover:shadow-md"
             >
               متابعة لإتمام الطلب
             </Link>

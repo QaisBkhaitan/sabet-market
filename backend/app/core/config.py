@@ -17,7 +17,7 @@ class Settings(BaseSettings):
     access_token_expire_minutes: int = 1440
 
     delivery_fee: Decimal = Decimal(
-        "70.0"
+        "0.0"
     )
 
     # Application environment
