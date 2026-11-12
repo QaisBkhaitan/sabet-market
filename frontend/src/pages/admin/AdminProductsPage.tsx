@@ -34,11 +34,11 @@ import type {
 
 import {
   adminCreateProduct,
+  adminGetCategories,
   adminGetProducts,
   adminSetProductAvailability,
   adminSetProductVisibility,
   adminUpdateProduct,
-  getCategories,
   getImageUrl,
 } from '../../services/api'
 
@@ -64,6 +64,10 @@ function AdminProductsPage() {
     showForm,
     setShowForm,
   ] = useState(false)
+
+  // null = قائمة المجموعات، all = كل المنتجات.
+  const [selectedCategory, setSelectedCategory] =
+    useState<number | 'all' | 'uncategorized' | null>(null)
 
 
   const [
@@ -161,6 +165,7 @@ function AdminProductsPage() {
   const {
     data: products = [],
     isLoading: productsLoading,
+    isError: productsError,
   } = useQuery({
     queryKey: [
       'admin-products',
@@ -174,12 +179,63 @@ function AdminProductsPage() {
   */
   const {
     data: categories = [],
+    isLoading: categoriesLoading,
+    isError: categoriesError,
   } = useQuery({
-    queryKey: [
-      'categories',
-    ],
-    queryFn: getCategories,
+    queryKey: ['admin-categories'],
+    queryFn: adminGetCategories,
   })
+
+
+  // التجميع للعرض فقط، ولا يغيّر أي بيانات محفوظة.
+  const categoryCounts = useMemo(() => {
+    const counts = new Map<number, number>()
+
+    for (const product of products) {
+      counts.set(
+        product.category_id,
+        (counts.get(product.category_id) ?? 0) + 1
+      )
+    }
+
+    return counts
+  }, [products])
+
+  const uncategorizedProducts = useMemo(
+    () => products.filter(
+      (product) => !categories.some(
+        (category) => category.id === product.category_id
+      )
+    ),
+    [products, categories]
+  )
+
+  const visibleProducts = useMemo(() => {
+    if (selectedCategory === 'all') {
+      return products
+    }
+
+    if (selectedCategory === 'uncategorized') {
+      return uncategorizedProducts
+    }
+
+    if (typeof selectedCategory === 'number') {
+      return products.filter(
+        (product) => product.category_id === selectedCategory
+      )
+    }
+
+    return []
+  }, [products, selectedCategory, uncategorizedProducts])
+
+  const selectedCategoryTitle =
+    selectedCategory === 'all'
+      ? 'جميع المنتجات'
+      : selectedCategory === 'uncategorized'
+        ? 'منتجات غير مصنفة'
+        : categories.find(
+            (category) => category.id === selectedCategory
+          )?.name_ar ?? 'المجموعة'
 
 
   /*
@@ -241,6 +297,11 @@ function AdminProductsPage() {
   */
   function openCreateForm() {
     resetForm()
+
+    // عند الإضافة داخل مجموعة نختارها تلقائيًا في النموذج.
+    if (typeof selectedCategory === 'number') {
+      setCategoryId(String(selectedCategory))
+    }
 
     setShowForm(true)
 
@@ -936,10 +997,16 @@ function AdminProductsPage() {
         {/* Products */}
         <section className="mt-7">
 
-          {productsLoading ? (
+          {productsLoading || categoriesLoading ? (
 
             <div className="py-10 text-center text-sm text-coffee">
-              جاري تحميل المنتجات...
+              جاري تحميل المنتجات والمجموعات...
+            </div>
+
+          ) : productsError || categoriesError ? (
+
+            <div className="rounded-2xl bg-red-50 p-4 text-sm text-red-700">
+              تعذر تحميل المنتجات أو المجموعات. حاول تحديث الصفحة.
             </div>
 
           ) : products.length === 0 ? (
@@ -957,11 +1024,95 @@ function AdminProductsPage() {
 
             </div>
 
+          ) : selectedCategory === null ? (
+
+            <div>
+              <h3 className="text-lg font-bold text-ink">
+                اختر المجموعة لعرض منتجاتها
+              </h3>
+              <p className="mt-1 text-sm text-coffee">
+                يمكنك الوصول للمنتجات وتعديلها من داخل كل مجموعة.
+              </p>
+
+              <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                <button
+                  type="button"
+                  onClick={() => setSelectedCategory('all')}
+                  className="flex items-center justify-between gap-3 rounded-2xl border border-sand bg-card p-5 text-right transition hover:border-coffee hover:shadow-sm"
+                >
+                  <span className="flex items-center gap-2 font-bold text-ink">
+                    <Package size={20} className="text-coffee-dark" />
+                    جميع المنتجات
+                  </span>
+                  <span className="shrink-0 text-xs text-coffee">
+                    {products.length} منتج
+                  </span>
+                </button>
+
+                {categories.map((category) => (
+                  <button
+                    key={category.id}
+                    type="button"
+                    onClick={() => setSelectedCategory(category.id)}
+                    className="flex items-center justify-between gap-3 rounded-2xl border border-sand bg-card p-5 text-right transition hover:border-coffee hover:shadow-sm"
+                  >
+                    <span className="min-w-0 font-bold text-ink">
+                      {category.name_ar}
+                    </span>
+                    <span className="shrink-0 text-xs text-coffee">
+                      {categoryCounts.get(category.id) ?? 0} منتج
+                    </span>
+                  </button>
+                ))}
+
+                {uncategorizedProducts.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => setSelectedCategory('uncategorized')}
+                    className="flex items-center justify-between gap-3 rounded-2xl border border-sand bg-card p-5 text-right transition hover:border-coffee hover:shadow-sm"
+                  >
+                    <span className="font-bold text-ink">
+                      منتجات غير مصنفة
+                    </span>
+                    <span className="shrink-0 text-xs text-coffee">
+                      {uncategorizedProducts.length} منتج
+                    </span>
+                  </button>
+                )}
+              </div>
+            </div>
+
           ) : (
 
-            <div className="grid gap-3">
+            <div>
+              <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+                <div>
+                  <h3 className="text-lg font-bold text-ink">
+                    {selectedCategoryTitle}
+                  </h3>
+                  <p className="mt-1 text-sm text-coffee">
+                    {visibleProducts.length} منتج
+                  </p>
+                </div>
 
-              {products.map(
+                <button
+                  type="button"
+                  onClick={() => setSelectedCategory(null)}
+                  className="flex items-center gap-2 rounded-xl border border-sand bg-card px-4 py-2 text-sm font-bold text-coffee-dark transition hover:bg-sand"
+                >
+                  <ArrowRight size={17} />
+                  الرجوع للمجموعات
+                </button>
+              </div>
+
+              {visibleProducts.length === 0 ? (
+                <div className="rounded-2xl border border-sand bg-card p-8 text-center text-sm text-coffee">
+                  لا توجد منتجات في هذه المجموعة.
+                </div>
+              ) : (
+                <div className="grid gap-3">
+
+              {visibleProducts.map(
                 (product) => {
 
                   const imageUrl =
@@ -1189,6 +1340,8 @@ function AdminProductsPage() {
                 }
               )}
 
+                </div>
+              )}
             </div>
 
           )}

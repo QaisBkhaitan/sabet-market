@@ -190,19 +190,31 @@ function AdminOrdersPage() {
     WhatsApp يحتاج الرقم
     بدون + أو مسافات.
   */
-  function getWhatsAppUrl(
-    number: string
-  ) {
-    const cleanNumber =
-      number.replace(
-        /\D/g,
-        ''
-      )
+  function getWhatsAppUrl(number: string) {
+  const digits = number.replace(/\D/g, '')
 
-    return (
-      `https://wa.me/${cleanNumber}`
-    )
+  let internationalNumber = digits
+
+  if (digits.startsWith('00')) {
+    internationalNumber = digits.slice(2)
+  } else if (
+    digits.startsWith('059') ||
+    digits.startsWith('056')
+  ) {
+    internationalNumber = `970${digits.slice(1)}`
+  } else if (
+    digits.startsWith('59') ||
+    digits.startsWith('56')
+  ) {
+    internationalNumber = `970${digits}`
+  } else if (digits.startsWith('0')) {
+    internationalNumber = `972${digits.slice(1)}`
+  } else if (digits.startsWith('5') && digits.length === 9) {
+    internationalNumber = `972${digits}`
   }
+
+  return `https://wa.me/${internationalNumber}`
+}
 
 
   function getStatusBadgeClass(
@@ -546,15 +558,15 @@ function AdminOrdersPage() {
 
                       {order.whatsapp && (
 
-                        <p
+                        <a
+                          href={getWhatsAppUrl(order.whatsapp)}
+                          target="_blank"
+                          rel="noopener noreferrer"
                           dir="ltr"
-                          className="mt-2 text-right text-xs text-coffee"
+                          className="mt-2 block w-fit text-xs font-bold text-coffee-dark underline underline-offset-4 transition hover:text-primary"
                         >
-                          WhatsApp:{' '}
-                          {
-                            order.whatsapp
-                          }
-                        </p>
+                          WhatsApp: {order.whatsapp}
+                        </a>
 
                       )}
 
