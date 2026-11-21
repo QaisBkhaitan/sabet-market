@@ -1,4 +1,6 @@
 import {
+  useEffect,
+  useRef,
   useState,
   type SubmitEvent,
 } from 'react'
@@ -31,6 +33,10 @@ import {
   formatPrice,
 } from '../utils/formatPrice'
 
+import {
+  trackMetaEvent,
+} from '../utils/metaPixel'
+
 
 function CheckoutPage() {
   const navigate =
@@ -46,6 +52,21 @@ function CheckoutPage() {
 
   const grandTotal =
     cartTotal
+
+  const checkoutTracked = useRef(false)
+
+  useEffect(() => {
+    if (checkoutTracked.current || items.length === 0) return
+
+    checkoutTracked.current = true
+    trackMetaEvent('InitiateCheckout', {
+      currency: 'ILS',
+      value: cartTotal,
+      num_items: items.reduce((total, item) => total + item.quantity, 0),
+      content_type: 'product',
+      content_ids: items.map((item) => String(item.product.id)),
+    })
+  }, [items, cartTotal])
 
 
   const [
@@ -278,6 +299,24 @@ function CheckoutPage() {
               })
             ),
         })
+
+      try {
+        const orderAmount = Number(createdOrder.total_amount)
+        const purchaseParameters: Record<string, unknown> = {
+          currency: 'ILS',
+          content_type: 'product',
+          content_ids: createdOrder.items.map((item) => String(item.product_id)),
+          contents: createdOrder.items.map((item) => ({
+            id: String(item.product_id),
+            quantity: item.quantity,
+          })),
+          num_items: createdOrder.items.reduce((total, item) => total + item.quantity, 0),
+        }
+        if (Number.isFinite(orderAmount)) purchaseParameters.value = orderAmount
+        trackMetaEvent('Purchase', purchaseParameters, `purchase-${createdOrder.id}`)
+      } catch {
+        // Tracking failures must not interrupt a successfully placed order.
+      }
 
 
       sessionStorage.setItem(

@@ -9,6 +9,7 @@ import {
 import type { ReactNode } from 'react'
 import type { Product } from '../types/product'
 import type { CartItem } from '../types/cart'
+import { trackMetaEvent } from '../utils/metaPixel'
 
 interface CartContextType {
   items: CartItem[]
@@ -64,6 +65,14 @@ export function CartProvider({
       return
     }
 
+    trackMetaEvent('AddToCart', {
+      currency: 'ILS',
+      value: product.price,
+      content_type: 'product',
+      content_ids: [String(product.id)],
+      contents: [{ id: String(product.id), quantity: 1 }],
+    })
+
     setItems((currentItems) => {
       const existingItem = currentItems.find(
         (item) => item.product.id === product.id
@@ -99,6 +108,17 @@ export function CartProvider({
   }
 
   function increaseQuantity(productId: number) {
+    const item = items.find((entry) => entry.product.id === productId)
+    if (item) {
+      trackMetaEvent('AddToCart', {
+        currency: 'ILS',
+        value: item.product.price,
+        content_type: 'product',
+        content_ids: [String(productId)],
+        contents: [{ id: String(productId), quantity: 1 }],
+      })
+    }
+
     setItems((currentItems) =>
       currentItems.map((item) =>
         item.product.id === productId
